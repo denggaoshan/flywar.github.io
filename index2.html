@@ -16,7 +16,7 @@
 作者： 邓高山
 </div>
 
-<canvas id="id-canvas" width="300" height="900" style="border: 1px black solid;">
+<canvas id="id-canvas" width="900" height="300" style="border: 1px black solid;">
 </canvas>
 </br>
 
@@ -121,8 +121,8 @@ var Block = function(){
         num: 1,
         x: 0,
         y: 0,
-        width: 100,
-        height: 300,
+        width: 300,
+        height: 100,
         belong: 0, //所属玩家，0中立
         capacity: 1, //产能，
         plane: 0, //领地的战斗机数量
@@ -130,8 +130,8 @@ var Block = function(){
 
     o.create = function(number){
         o.num = number
-        o.x = (number - 1) % 3 * 100
-        o.y = Math.floor( (number-1)/3 ) * 300
+        o.x = (number - 1) % 3 * 300
+        o.y = Math.floor( (number-1)/3 ) * 100
     }
 
     o.drawBlock = function(){
