@@ -26,16 +26,23 @@
 </br>
 
 <div>
-    资源统计：
-    <div id="id-statistics">
-    石油总量： 20 
-    占领领地： 1 
-    石油产能：2
-    战斗机数量： 10 
-    </div>
+<h3>
+统计
+</h3>
+<div id="id-statistics">
+石油总量： 20 
+占领领地： 1 
+石油产能：2
+战斗机数量： 10
+每回合消耗： 0
+</div>
 </div>
 </br>
 <div>
+
+<h3>
+操作：
+</h3>
 
 1 开采（1单位产能 = 1次掷骰子机会）</br>
 <button type="button" onclick="mine()" >开采</button></br>
@@ -46,9 +53,9 @@
 </div>
 
 </br>
-2 生产(只能从己方领地生产，每单位飞机消耗10单位石油)</br>
+2 生产</br>(只能从己方领地生产，每单位飞机消耗10单位石油)</br>
 从区域
-<select id="id-produce-area" name="move-from"> 
+<select id="id-produce-area"> 
 <option value="1">1</option> 
 <option value="2">2</option> 
 <option value="3">3</option> 
@@ -65,10 +72,10 @@
 <div id="id-produce-label">
 </div>
 
-</br></br>
-3 移动 / 攻击</br>
+</br>
+3 移动 / 攻击 / 占领 </br>(每单位飞机移动消耗1单位石油，在己方领土之外每回合消耗1单位石油，石油耗尽则摧毁;如果遭遇敌军，则进入攻击模式,抛骰子拼点)</br>
 从区域
-<select name="move-from"> 
+<select id="id-move-from"> 
 <option value="1">1</option> 
 <option value="2">2</option> 
 <option value="3">3</option> 
@@ -80,7 +87,7 @@
 <option value="9">9</option>
 </select> 
 到区域
-<select name="move-from"> 
+<select id="id-move-to"> 
 <option value="1">1</option> 
 <option value="2">2</option> 
 <option value="3">3</option> 
@@ -90,10 +97,9 @@
 <option value="7">7</option> 
 <option value="8">8</option> 
 <option value="9">9</option>
-</select> </br>
-
-<label type="">派遣数量:</button>
-<input/>
+</select><label>可以移动！</label></br>
+<label type="">派遣飞机数量:</button>
+<input id="id-move-plane"/>
 </br>
 <button type="">确认</button></br></br>
 
@@ -160,7 +166,7 @@ var FlyGame = function(){
 
         //资源统计视图
        
-        var show = " 石油总量： "+player.oilSum+" 占领领地： "+player.placeSum+" 石油产能："+player.oilCapacity+" 战斗机数量： "+player.planeSum
+        var show = " 石油总量: "+player.oilSum+"</br>占领领地: "+player.placeSum+"</br>石油产能: "+player.oilCapacity+"</br>战斗机数量:"+player.planeSum + "</br>每回合消耗: " + 0
 
         document.getElementById('id-statistics').innerHTML = show;
         return o
@@ -197,14 +203,16 @@ var Player = function(){
 //地图块
 var Block = function(){
     var o ={
-        num: 1,
+        num: 1,//区域编号
         x: 0,
         y: 0,
         width: GAME_BLOCK_WIDTH,
         height: GAME_BLOCK_HEIGHT,
-        belong: 0, //所属玩家，0中立
-        capacity: 1, //产能，
-        plane: 0, //领地的战斗机数量
+        
+        belong: 0,      //所属玩家，0中立
+        capacity: 1,    //产能
+        life: 5,        //领地的防御
+        plane: 0,       //领地的战斗机数量
     }
 
     o.create = function(number){
@@ -227,7 +235,7 @@ var Block = function(){
 
         //抬头
         ctx.font = '15px';
-        ctx.strokeText('区域：' + o.num, o.x , o.y + 15)   
+        ctx.strokeText('区域：' + o.num +'    防御：' + o.life , o.x , o.y + 15)   
         
         //资源
         var img = new Image()
@@ -375,13 +383,18 @@ var init = function(){
     //初始领地归属
     maps[0].belong = 1
     maps[0].plane = 10
+    maps[0].life = 20
+    
     maps[8].belong = 2
     maps[8].plane = 10
+    maps[8].life = 20
 
     maps[0].capacity = 2
     maps[8].capacity = 2
     maps[2].capacity = 2
+    maps[2].life = 10
     maps[6].capacity = 2
+    maps[6].life = 10
 
     maps[4].capacity = 3
     //初始领地资源
