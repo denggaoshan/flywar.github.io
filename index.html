@@ -24,32 +24,29 @@
     当前是：玩家1 回合
 </div>
 </br>
+
 <div>
-    玩家1 资源统计：
-    <div>
-    石油： 0
-    
-    占领领地： 1
+    资源统计：
+    <div id="id-statistics">
+    石油总量： 0 
+    占领领地： 1 
+    石油产能：2
+    战斗机数量： 10 
     </div>
 </div>
 </br>
 <div>
 
-1 开采（每占领1单位石油资源，增加一个骰子）</br>
-<button type="">开采</button></br>
-<div>
-结果：
-</div>
-<div>
-    1
-</div>
+1 开采（1单位产能 = 1次掷骰子机会）</br>
+<button type="button" onclick="mine()" >开采</button></br>
 
-<div>
-获得石油数量： 1*2*3 = 6
+<div id="id-mine-result">
+</div>
+<div id="id-income-result">
 </div>
 
 </br>
-2 生产(每单位飞机消耗1石油)</br>
+2 生产(只能从己方领地生产，每单位飞机消耗10单位石油)</br>
 从区域
 <select name="move-from"> 
 <option value="1">1</option> 
@@ -62,7 +59,9 @@
 <option value="8">8</option> 
 <option value="9">9</option>
 </select>
-生产飞机<input/>架<button>确认</button>
+生产飞机<input/>架
+<button type="button" onclick="produce()">确认</button>
+<button type="button" onclick="produceMax()">最大</button>
 
 </br></br>
 3 移动 / 攻击</br>
@@ -96,7 +95,7 @@
 </br>
 <button type="">确认</button></br></br>
 
-3 <button type="">回合结束</button></br></br>
+<button type="">回合结束</button></br></br>
 
 </div>
 
@@ -109,14 +108,60 @@ var log = console.log.bind(console)
 var canvas = document.querySelector('#id-canvas')
 var ctx = canvas.getContext('2d')
 
-var __main = function(){
-    init()
+
+//游戏
+var FlyGame = function(){
+    var o ={
+        players: {},
+        current: 1,
+        ifMined: false,
+        maps : {},
+    }
+
+    o.getCurrentPlayer = function(){
+        if(o.current == 1){
+            return o.players[0]
+        }
+        if(o.current == 2){
+            return o.players[1]
+        }
+    }
+
+    //更新资源统计视图
+    o.updateStat = function(){
+        var player = o.getCurrentPlayer()
+        var show = " 石油总量： "+player.oilSum+" 占领领地： "+player.placeSum+" 石油产能："+player.oilCapacity+" 战斗机数量： "+player.planeSum
+
+        document.getElementById('id-statistics').innerHTML = show;
+    }
+    return o
 }
 
+//玩家
+var Player = function(){
+    var o ={
+        num: 1,
+        oilSum: 0,      //石油资源总量
+        placeSum: 1,    //领地总量
+        planeSum: 10,   //战斗机总量
+
+        oilCapacity: 2, //产能
+    }   
+
+    o.mine = function(position){
+        results = new Array()
+        for(var i=0; i< o.oilCapacity;i++){
+            num = 1 + parseInt(Math.random()*6, 10)
+            results.push(num)
+        }
+        return results
+    }
+
+    return o
+}
 
 //地图块
 var Block = function(){
-    
     var o ={
         num: 1,
         x: 0,
@@ -176,6 +221,57 @@ var Block = function(){
 }
 
 
+var __main = function(){
+    init()
+}
+
+//根据骰子结果计算金币
+function calculateIncome(results){
+    //3个筛子以下
+    if(results.length<3){
+        if(results[0] == results[1]){
+            return results[0] * results[0]
+        }
+        return results[0] + results[1]
+    }
+}
+
+//开采
+function mine(){
+    if(game.ifMined == false){
+
+        player =  game.getCurrentPlayer()
+        //投骰子
+        var results = player.mine()
+        //显示骰子结果
+        document.getElementById('id-mine-result').innerHTML = "骰子结果："+results;
+
+        //计算收益
+        var income = calculateIncome(results)
+        //显示收益
+        document.getElementById('id-income-result').innerHTML = "获得石油数量："+income;
+        game.ifMined = true
+
+        player.oilSum += income
+
+        game.updateStat()
+       
+
+    }else{
+        document.getElementById('id-mine-result').innerHTML = "本回合不能再开采！";
+        document.getElementById('id-income-result').innerHTML = "";
+    }
+}
+
+//生产飞机
+function produce(){
+
+}
+
+//全局控制器
+var game = new FlyGame()
+
+
 var init = function(){
 
     maps = new Array()
@@ -185,6 +281,13 @@ var init = function(){
         block.create(i)
         maps.push(block)
     }
+
+    //初始化玩家
+    player1 = new Player()
+    player2 = new Player()
+    game.players = new Array()
+    game.players.push(player1)
+    game.players.push(player2)
 
     //初始领地归属
     maps[0].belong = 1
@@ -204,6 +307,8 @@ var init = function(){
     for(var i=0;i<9;i++){
         maps[i].drawBlock()
     }
+
+    game.maps = maps
 
 }
 
