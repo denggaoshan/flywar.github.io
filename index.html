@@ -66,9 +66,10 @@
 <option value="8">8</option> 
 <option value="9">9</option>
 </select>
-生产飞机<input id="id-produce-input"/>架
-<button type="button" onclick="produce()">确认</button>
+</br>生产飞机<input id="id-produce-input"/>架
+</br>
 <button type="button" onclick="produceMax()">最大</button>
+<button type="button" onclick="produce()">确认</button>
 <div id="id-produce-label">
 </div>
 
@@ -97,12 +98,16 @@
 <option value="7">7</option> 
 <option value="8">8</option> 
 <option value="9">9</option>
-</select><label>可以移动！</label></br>
-<label type="">派遣飞机数量:</button>
-<input id="id-move-plane"/>
-</br>
-<button type="">确认</button></br></br>
+</select>
+</br><label type="">派遣飞机数量:</button>
+<input id="id-move-plane"/>架</br>
+<button type="button" onclick="move()">确认</button></br>
 
+<label id="id-move-info"></label>
+
+</br>
+
+</br>
 <button type="button" onclick="endTurn()">回合结束</button></br></br>
 
 </div>
@@ -212,7 +217,7 @@ var Block = function(){
         belong: 0,      //所属玩家，0中立
         capacity: 1,    //产能
         life: 5,        //领地的防御
-        plane: 0,       //领地的战斗机数量
+        plane: 5,       //领地的战斗机数量
     }
 
     o.create = function(number){
@@ -262,7 +267,7 @@ var Block = function(){
     return o
 }
 
-
+//入口
 var __main = function(){
     init()
 }
@@ -350,6 +355,59 @@ function produceMax(){
     input.value = number
 }
 
+
+function getBlockBelong(num){
+    return game.maps[num - 1].belong
+}
+
+
+//计算移动消耗 返回小于等于0则表示不合法移动
+function calculateMoveComsume(player,from,to,planeNumber){
+    dicts = [   [0,1,0,1,0,0,0,0,0],
+                [1,0,1,0,1,0,0,0,0],
+                [0,1,0,0,0,1,0,0,0],
+                [1,0,0,0,1,0,1,0,0],
+                [0,1,0,1,0,1,0,1,0],
+                [0,0,1,0,1,0,0,0,1],
+                [0,0,0,0,1,0,1,0,1],
+                [0,0,0,0,0,1,0,1,0]
+                ]
+    if(dicts[from][to] != 1){
+        return -1
+    }
+    return planeNumber
+}
+
+function showMoveInfo(str){
+    document.getElementById('id-move-info').innerHTML = str;
+}
+
+//飞机移动指令
+function move(){
+    
+    var player = game.getCurrentPlayer()
+    var from = document.getElementById('id-move-from').value
+    var to = document.getElementById('id-move-to').value
+    var planeNumber = document.getElementById('id-move-plane').value
+
+    //计算移动消耗
+    var consume = calculateMoveComsume(player,from,to,planeNumber)
+    
+    if(consume < 0){
+        showMoveInfo("此移动不合法！")
+    }
+
+    //移动到敌对区域
+    if(getBlockBelong(to) != player.num){
+        var str = "发生战斗！</br>我方点数：10</br>对方点数：8 + 5</br>"
+        showMoveInfo(str)
+    }else{
+    //移动到友军区域
+        
+    }
+    
+}
+
 //回合结束
 function endTurn(){
     game = game.changePlayer()
@@ -359,8 +417,7 @@ function endTurn(){
 }
 
 
-
-
+//初始化
 var init = function(){
 
     maps = new Array()
@@ -403,6 +460,7 @@ var init = function(){
 
     game.update()
 }
+
 
 __main()
 
