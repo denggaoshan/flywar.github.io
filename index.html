@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <link rel="stylesheet" href="">
+</head>
+<body>
+
+<div>
+飞行大乱斗 - V1.0
+</div>
+<div>
+作者： 邓高山
+</div>
+
+<canvas id="id-canvas" width="900" height="300" style="border: 1px black solid;">
+</canvas>
+</br>
+
+<div>
+    当前是：玩家1 回合
+</div>
+</br>
+<div>
+    玩家1 资源统计：
+    <div>
+    石油： 0
+    
+    占领领地： 1
+    </div>
+</div>
+</br>
+<div>
+
+1 开采（每占领1单位石油资源，增加一个骰子）</br>
+<button type="">开采</button></br>
+<div>
+结果：
+</div>
+<div>
+    1
+</div>
+
+<div>
+获得石油数量： 1*2*3 = 6
+</div>
+
+</br>
+2 生产(每单位飞机消耗1石油)</br>
+从区域
+<select name="move-from"> 
+<option value="1">1</option> 
+<option value="2">2</option> 
+<option value="3">3</option> 
+<option value="4">4</option> 
+<option value="5">5</option> 
+<option value="6">6</option>
+<option value="7">7</option> 
+<option value="8">8</option> 
+<option value="9">9</option>
+</select>
+生产飞机<input/>架<button>确认</button>
+
+</br></br>
+3 移动 / 攻击</br>
+从区域
+<select name="move-from"> 
+<option value="1">1</option> 
+<option value="2">2</option> 
+<option value="3">3</option> 
+<option value="4">4</option> 
+<option value="5">5</option> 
+<option value="6">6</option>
+<option value="7">7</option> 
+<option value="8">8</option> 
+<option value="9">9</option>
+</select> 
+到区域
+<select name="move-from"> 
+<option value="1">1</option> 
+<option value="2">2</option> 
+<option value="3">3</option> 
+<option value="4">4</option> 
+<option value="5">5</option> 
+<option value="6">6</option>
+<option value="7">7</option> 
+<option value="8">8</option> 
+<option value="9">9</option>
+</select> </br>
+
+<label type="">派遣数量:</button>
+<input/>
+</br>
+<button type="">确认</button></br></br>
+
+3 <button type="">回合结束</button></br></br>
+
+</div>
+
+
+</body>
+
+<script type="text/javascript">
+
+var log = console.log.bind(console)
+var canvas = document.querySelector('#id-canvas')
+var ctx = canvas.getContext('2d')
+
+var __main = function(){
+    init()
+}
+
+
+//地图块
+var Block = function(){
+    
+    var o ={
+        num: 1,
+        x: 0,
+        y: 0,
+        width: 300,
+        height: 100,
+        belong: 0, //所属玩家，0中立
+        capacity: 1, //产能，
+        plane: 0, //领地的战斗机数量
+    }
+
+    o.create = function(number){
+        o.num = number
+        o.x = (number - 1) % 3 * 300
+        o.y = Math.floor( (number-1)/3 ) * 100
+    }
+
+    o.drawBlock = function(){
+       
+        ctx.strokeRect(o.x, o.y, o.width, o.height);
+
+        if(o.belong == 1){
+            ctx.fillStyle = "green";
+            ctx.fillRect(o.x, o.y, o.width, o.height);  
+        }else if (o.belong == 2){
+            ctx.fillStyle = "blue";
+            ctx.fillRect(o.x, o.y, o.width, o.height); 
+        }
+
+        //抬头
+        ctx.font = '15px';
+        ctx.strokeText('区域：' + o.num, o.x , o.y + 15)   
+        
+        //资源
+        var img = new Image()
+        img.src = 'oil.png'   
+        img.onload = function(){
+            ctx.drawImage(img,o.x + 1,o.y + 20 ,30,30)
+        }
+
+        //显示产能
+        ctx.font = '30px';
+        ctx.strokeText( o.capacity,o.x + 35,o.y + 40 ,30,30)
+        
+        //布防
+        var img2 = new Image()
+        img2.src = 'airplane.png'   
+        img2.onload = function(){
+            ctx.drawImage(img2,o.x + 1,o.y + 55 ,30,30)
+        } 
+        //显示飞机数量
+        ctx.font = '30px';
+        ctx.strokeText( o.plane,o.x + 35,o.y + 75 ,30,30)
+
+    }
+    return o
+}
+
+
+var init = function(){
+
+    maps = new Array()
+
+    for(var i=1;i<=9;i++){
+        var block = new Block()
+        block.create(i)
+        maps.push(block)
+    }
+
+    //初始领地归属
+    maps[0].belong = 1
+    maps[0].plane = 10
+    maps[8].belong = 2
+    maps[8].plane = 10
+
+    maps[0].capacity = 2
+    maps[8].capacity = 2
+    maps[2].capacity = 2
+    maps[6].capacity = 2
+
+    maps[4].capacity = 3
+    //初始领地资源
+
+    //绘图
+    for(var i=0;i<9;i++){
+        maps[i].drawBlock()
+    }
+
+}
+
+__main()
+
+</script>
+
+</html>
