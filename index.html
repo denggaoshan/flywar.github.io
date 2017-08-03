@@ -143,14 +143,6 @@ var FlyGame = function(){
         maps : {},
     }
 
-    o.getBlock = function(num){
-        return game.maps[num - 1]
-    }
-
-    o.getBlockBelong = function(num){
-    return game.maps[num - 1].belong
-    }   
-
     o.getCurrentPlayer = function(){
         if(o.current == 1){
             return o.players[0]
@@ -160,39 +152,6 @@ var FlyGame = function(){
         }
     }
 
-
-    //根据骰子结果计算点数
-    o.calculateIncome = function(results){
-        //1个骰子
-        if(results.length == 1){
-            return results[0]
-        }
-        //2个骰子
-        if(results.length==2){
-            //相同点数返回乘积
-            if(results[0] == results[1]){
-                return results[0] * results[0]
-            }
-            return results[0] + results[1]
-        }
-
-        //3个筛子以上 TODO 先简单相加
-        var sum = 0
-        for(var i=0;i<results.length;i++){
-            sum += results[i]
-        }
-        return sum
-    }
-
-    //投骰子number次
-    o.roll = function(number){
-        results = new Array()
-        for(var i=0;i<number;i++){
-            num = 1 + parseInt(Math.random()*6, 10)
-            results.push(num)
-        }
-        return results
-    }
     //切换玩家
     o.changePlayer = function(){
         if(o.current == 1){
@@ -214,15 +173,13 @@ var FlyGame = function(){
             maps[i].drawBlock()
         }
 
-        document.getElementById('id-player-label').innerHTML = "当前：玩家"+player.num+" 回合"
+        document.getElementById('id-player-label').innerHTML = "当前：玩家"+player.num+" 回合";
 
         //资源统计视图
        
         var show = " 石油总量: "+player.oilSum+"</br>占领领地: "+player.placeSum+"</br>石油产能: "+player.oilCapacity+"</br>战斗机数量:"+player.planeSum + "</br>每回合消耗: " + 0
 
-        document.getElementById('id-statistics').innerHTML = show
-
-
+        document.getElementById('id-statistics').innerHTML = show;
         return o
     }
     return o
@@ -243,7 +200,11 @@ var Player = function(){
     }   
 
     o.mine = function(position){
-        results = game.roll(o.oilCapacity)
+        results = new Array()
+        for(var i=0; i< o.oilCapacity;i++){
+            num = 1 + parseInt(Math.random()*6, 10)
+            results.push(num)
+        }
         return results
     }
 
@@ -317,6 +278,17 @@ var __main = function(){
     init()
 }
 
+//根据骰子结果计算金币
+function calculateIncome(results){
+    //3个筛子以下
+    if(results.length<3){
+        if(results[0] == results[1]){
+            return results[0] * results[0]
+        }
+        return results[0] + results[1]
+    }
+}
+
 //开采
 function mine(){
     if(game.ifMined == false){
@@ -328,7 +300,7 @@ function mine(){
         document.getElementById('id-mine-result').innerHTML = "骰子结果："+results;
 
         //计算收益
-        var income = game.calculateIncome(results)
+        var income = calculateIncome(results)
         //显示收益
         document.getElementById('id-income-result').innerHTML = "获得石油数量："+income;
         game.ifMined = true
@@ -389,26 +361,24 @@ function produceMax(){
     input.value = number
 }
 
+
+function getBlockBelong(num){
+    return game.maps[num - 1].belong
+}
+
+
 //计算移动消耗 返回小于等于0则表示不合法移动
 function calculateMoveComsume(player,from,to,planeNumber){
-    to = parseInt(to)
-    from = parseInt(from)
     dicts = [   [0,1,0,1,0,0,0,0,0],
                 [1,0,1,0,1,0,0,0,0],
                 [0,1,0,0,0,1,0,0,0],
                 [1,0,0,0,1,0,1,0,0],
                 [0,1,0,1,0,1,0,1,0],
                 [0,0,1,0,1,0,0,0,1],
-                [0,0,0,1,0,0,0,1,0],
                 [0,0,0,0,1,0,1,0,1],
-                [0,0,0,0,0,1,0,1,0],
+                [0,0,0,0,0,1,0,1,0]
                 ]
-    
-    if(dicts[from - 1 ][to - 1] != 1){
-        return -1
-    }
-
-    if(game.getBlockBelong(from) != game.getCurrentPlayer().num){
+    if(dicts[from][to] != 1){
         return -1
     }
     return planeNumber
@@ -431,74 +401,12 @@ function move(){
     
     if(consume < 0){
         showMoveInfo("此移动不合法！")
-        return
-    }
-
-    //扣除石油消耗
-    if(consume > player.oilSum){
-        showMoveInfo("石油资源不足！")
-        return   
-    }else{
-        player.oilSum -= consume
-        //删除原来位置的飞机
-        var block = game.getBlock(from)
-        block.plane -= planeNumber
     }
 
     //移动到敌对区域
-    if(game.getBlockBelong(to) != player.num){
-        
-        //战斗判定
-        var blockTo = game.getBlock(to)
-        var blockFrom = game.getBlock(from)
-        n1 = Math.floor(planeNumber / 10 + 1)
-        n2 = Math.floor(blockTo.plane / 10 + 1)
-        
-        r1 = game.roll( n1 )
-        r2 = game.roll( n2 )
-        p1 = game.calculateIncome(r1)
-        p2 = game.calculateIncome(r2) 
-        //计算结果
-        p2 = p2 + blockTo.life
-        var judge = p2 - p1
-        
-        var strResult = "" //结果
-
-        if(judge > 0){
-            planeNumber -= blockTo.plane
-            strResult += "失败，我方损失" + blockTo.plane + "</br>"
-        }else if(judge == 0){
-            planeNumber -= blockTo.plane
-            blockTo.plane -= planeNumber
-            strResult += "我方损失" + blockTo.plane + "</br>"
-            strResult += "敌方损失" + blockTo.plane + "</br>"
-        }else if(judge < 0){
-            blockTo.plane -= planeNumber
-            strResult += "成功，敌方损失" + planeNumber + "</br>"
-        }
-        
-        if(planeNumber <= 0){
-            strResult += "我方全灭。" + "</br>"
-        }else if(blockTo.plane <= 0){
-            strResult += "全歼敌方单位" + "</br>"
-            
-            //占领判定
-            blockTo.plane = planeNumber
-            strResult += "占领领地：" + blockTo.num + "</br>"
-            blockTo.life = 3
-            blockTo.belong = player.num
-            player.oilCapacity += blockTo.capacity
-            player.placeSum += 1
-        }else{
-            //没有全灭
-            strResult += "仍有敌军，剩余"+planeNumber+"架战斗机返航。</br>"
-            blockFrom.plane += planeNumber
-        }
-
-        var str = "消耗石油： "+consume+"</br>发生战斗！</br>我方点数(加成"+ 0 + "):"+r1+"最终:"+p1+"</br>对方点数(加成"+blockTo.life+"):"+r2+"最终:"+p2+"</br>战斗结果</br>" + strResult
-
+    if(getBlockBelong(to) != player.num){
+        var str = "发生战斗！</br>我方点数：10</br>对方点数：8 + 5</br>"
         showMoveInfo(str)
-        game.update()
     }else{
     //移动到友军区域
         
@@ -512,9 +420,6 @@ function endTurn(){
     log(game)
     game.ifMined = false
     game.update()
-    //清空所有消息提示栏
-    document.getElementById('id-mine-result').innerHTML = ""
-    document.getElementById('id-move-info').innerHTML = ""
 }
 
 
