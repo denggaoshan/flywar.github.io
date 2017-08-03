@@ -16,7 +16,7 @@
 作者邮箱： gaoshan.deng@foxmail.com
 </div>
 
-<canvas id="id-canvas" width="600" height="900" style="border: 1px black solid;">
+<canvas id="id-canvas" width="100%" style="border: 1px black solid;">
 </canvas>
 </br>
 
@@ -122,10 +122,15 @@ var canvas = document.querySelector('#id-canvas')
 var ctx = canvas.getContext('2d')
 
 //游戏属性
-var GAME_WIDTH = 600
-var GAME_HEIGHT = 900
+var GAME_WIDTH = document.body.clientWidth
+var GAME_HEIGHT =  900
 var GAME_BLOCK_WIDTH = GAME_WIDTH / 3
 var GAME_BLOCK_HEIGHT = GAME_HEIGHT / 3
+
+var initWindow = function(){
+    canvas.width = GAME_WIDTH
+    canvas.height = GAME_HEIGHT
+}
 
 //游戏
 var FlyGame = function(){
@@ -308,6 +313,7 @@ var Block = function(){
 
 //入口
 var __main = function(){
+    initWindow()
     init()
 }
 
